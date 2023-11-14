@@ -22,17 +22,37 @@ def window():
 
     for i in range(0, 2):
         for j in range(0, 5):
-            tempLayout = QVBoxLayout()
-            tempLabel = QLabel()
-            tempLabel.setPixmap(QPixmap("images/noImage.png"))
-            tempLayout.addWidget(tempLabel)
-            tempLayout.addWidget(QLabel("label"))
-            tempLayout.addStretch()
+            cellLayout = QVBoxLayout()
+            cellLabel = QLabel()
+            cellLabel.setPixmap(QPixmap("images/noImage.png"))
+            cellLayout.addWidget(cellLabel)
+            cellLayout.addWidget(QLabel("label"))
+            cellLayout.addStretch()
 
-            gridBox.addLayout(tempLayout, i, j)
+            gridBox.addLayout(cellLayout, i, j)
 
-            # gridBox.addLayout(QVBoxLayout().addWidget(QLabel().setPixmap(QPixmap("images/noImage.png"))), i, j)
-            # gridBox.addWidget(QPushButton("B" + str(i) + str(j)), i, j)
+    try:
+        random = apiRequests.getRandomMovies()
+    except ConnectionError as e:
+        print(e)
+        return
+
+    scale = QTransform().scale(0.1, 0.1)
+
+    for i in range(0, 10):
+        # set title
+        title = random['results'][i]['originalTitleText']['text']
+        cell = gridBox.findChildren(QVBoxLayout)[i]
+        cell.itemAt(1).widget().setText(title)
+
+        # set image
+        poster = QImage()
+
+        try:
+            poster.loadFromData(apiRequests.getImage(random['results'][i]['primaryImage']['url']))
+            cell.itemAt(0).widget().setPixmap(QPixmap(poster).transformed(scale))
+        except:
+            cell.itemAt(0).widget().setPixmap(QPixmap("images/noImage.png"))
 
     # MAIN BOX
     mainBox = QVBoxLayout()
@@ -51,15 +71,3 @@ def window():
 
 if __name__ == '__main__':
     window()
-
-    # resp = apiRequests.searchTitle("Bodies")
-
-    # print(resp['results'][1]['primaryImage']['url'])
-    # print(resp)
-
-    # image = QImage()
-    # image.loadFromData(apiRequests.getImage(resp['results'][0]['primaryImage']['url']))
-    #
-    # image_label = QLabel()
-    # image_label.setPixmap(QPixmap(image))
-    # image_label.show()
