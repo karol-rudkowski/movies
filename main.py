@@ -3,7 +3,9 @@ from PyQt6.QtGui import *
 from PyQt6.QtCore import *
 from PyQt6.QtWidgets import *
 
-
+TARGET_SIZE = 150.0
+def findScale(size) -> float:
+    return TARGET_SIZE / size
 def window():
     app = QApplication([])
 
@@ -37,8 +39,6 @@ def window():
         print(e)
         return
 
-    scale = QTransform().scale(0.1, 0.1)
-
     for i in range(0, 10):
         # set title
         title = random['results'][i]['originalTitleText']['text']
@@ -46,13 +46,16 @@ def window():
         cell.itemAt(1).widget().setText(title)
 
         # set image
-        poster = QImage()
-
         try:
+            scaleValue = findScale(random['results'][i]['primaryImage']['width'])
+            scale = QTransform().scale(scaleValue, scaleValue)
+
+            poster = QImage()
             poster.loadFromData(apiRequests.getImage(random['results'][i]['primaryImage']['url']))
             cell.itemAt(0).widget().setPixmap(QPixmap(poster).transformed(scale))
         except:
-            cell.itemAt(0).widget().setPixmap(QPixmap("images/noImage.png"))
+            scale = QTransform().scale(1.47, 1.47)
+            cell.itemAt(0).widget().setPixmap(QPixmap("images/noImage.png").transformed(scale))
 
     # MAIN BOX
     mainBox = QVBoxLayout()
