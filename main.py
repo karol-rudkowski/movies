@@ -4,12 +4,13 @@ from PyQt6.QtCore import *
 from PyQt6.QtWidgets import *
 
 TARGET_SIZE = 150.0
+moviesIds = []
 
 def findScale(size) -> float:
     return TARGET_SIZE / size
 
-def labelClicked(id):
-    print("Clicked on cell with id: " + id)
+def labelClicked(cell, grid):
+    print(moviesIds[grid.indexOf(cell)])
 
 def window():
     app = QApplication([])
@@ -46,28 +47,27 @@ def window():
 
 
     try:
-        random = apiRequests.getRandomMovies()
+        randomMovies = apiRequests.getRandomMovies()
     except ConnectionError as e:
         print(e)
         return
 
     for i in range(0, 10):
         # set title
-        title = random['results'][i]['originalTitleText']['text']
+        title = randomMovies['results'][i]['originalTitleText']['text']
         cell = gridBox.findChildren(QVBoxLayout)[i]
         cell.itemAt(2).widget().setText(title)
 
         # set image
         try:
-            scaleValue = findScale(random['results'][i]['primaryImage']['width'])
+            scaleValue = findScale(randomMovies['results'][i]['primaryImage']['width'])
             scale = QTransform().scale(scaleValue, scaleValue)
 
             poster = QImage()
-            poster.loadFromData(apiRequests.getImage(random['results'][i]['primaryImage']['url']))
+            poster.loadFromData(apiRequests.getImage(randomMovies['results'][i]['primaryImage']['url']))
 
-            movieId = random['results'][i]['id']
-            cell.itemAt(0).widget().setAccessibleName(movieId)
-            cell.itemAt(0).widget().mousePressEvent = lambda event, mId=movieId: labelClicked(mId)
+            moviesIds.append(randomMovies['results'][i]['id'])
+            cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
 
             cell.itemAt(0).widget().setPixmap(QPixmap(poster))
             cell.itemAt(0).widget().setPixmap(QPixmap(poster).transformed(scale))
