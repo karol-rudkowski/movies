@@ -1,16 +1,19 @@
 import apiRequests
+import webbrowser
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
 from PyQt6.QtWidgets import *
 
 TARGET_SIZE = 150.0
+IMDB_LINK = "https://www.imdb.com/title/"
 moviesIds = []
-
 def findScale(size) -> float:
     return TARGET_SIZE / size
 
 def labelClicked(cell, grid):
-    print(moviesIds[grid.indexOf(cell)])
+    id = moviesIds[grid.indexOf(cell)]
+    webbrowser.open(IMDB_LINK + id)
+    print(id)
 
 def window():
     app = QApplication([])
