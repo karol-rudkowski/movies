@@ -67,13 +67,19 @@ def window():
             poster.loadFromData(apiRequests.getImage(randomMovies['results'][i]['primaryImage']['url']))
 
             moviesIds.append(randomMovies['results'][i]['id'])
-            cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
 
             cell.itemAt(0).widget().setPixmap(QPixmap(poster))
             cell.itemAt(0).widget().setPixmap(QPixmap(poster).transformed(scale))
+
+            cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
+            cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
         except:
             scale = QTransform().scale(1.47, 1.47)
+
             cell.itemAt(0).widget().setPixmap(QPixmap("images/noImage.png").transformed(scale))
+
+            cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
+            cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
 
     # MAIN BOX
     mainBox = QVBoxLayout()
