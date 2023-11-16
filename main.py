@@ -4,8 +4,13 @@ from PyQt6.QtCore import *
 from PyQt6.QtWidgets import *
 
 TARGET_SIZE = 150.0
+
 def findScale(size) -> float:
     return TARGET_SIZE / size
+
+def labelClicked(id):
+    print("Clicked on cell with id: " + id)
+
 def window():
     app = QApplication([])
 
@@ -39,6 +44,7 @@ def window():
 
             gridBox.addLayout(cellLayout, i, j)
 
+
     try:
         random = apiRequests.getRandomMovies()
     except ConnectionError as e:
@@ -59,6 +65,10 @@ def window():
             poster = QImage()
             poster.loadFromData(apiRequests.getImage(random['results'][i]['primaryImage']['url']))
 
+            movieId = random['results'][i]['id']
+            cell.itemAt(0).widget().setAccessibleName(movieId)
+            cell.itemAt(0).widget().mousePressEvent = lambda event, mId=movieId: labelClicked(mId)
+
             cell.itemAt(0).widget().setPixmap(QPixmap(poster))
             cell.itemAt(0).widget().setPixmap(QPixmap(poster).transformed(scale))
         except:
@@ -78,7 +88,6 @@ def window():
     window.show()
 
     app.exec()
-
 
 if __name__ == '__main__':
     window()
