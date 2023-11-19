@@ -8,9 +8,10 @@ TARGET_WIDTH = 150  # width of images in grid
 IMDB_LINK = "https://www.imdb.com/title/"
 
 moviesIds = []
+lists = []
 
 
-def findScale(width) -> float:
+def calculateImageScale(width) -> float:
     return TARGET_WIDTH / width
 
 
@@ -26,6 +27,19 @@ def showErrorDialog():
     msgDialog.setWindowTitle("Movies | Error")
     msgDialog.exec()
 
+
+def getLists():
+    try:
+        listsResult = apiRequests.getLists()
+    except Exception as e:
+        print("Get Lists Error: ", e)
+        showErrorDialog()
+        return
+
+    for listName in listsResult['results']:
+        lists.append(listName)
+
+    # lists.remove("titles")  # "titles" doesn't work
 
 
 def window():
@@ -50,6 +64,27 @@ def window():
     searchBarBox.addWidget(searchButton)
     searchBarBox.addStretch()
 
+    # RANDOM MOVIES BAR
+    randomBox = QHBoxLayout()
+    comboBox = QComboBox()
+    drawButton = QPushButton("Show Random Movies")
+    drawButton.clicked.connect(lambda: showMovies(apiRequests.getRandomMovies(lists[comboBox.currentIndex()])))
+
+    getLists()
+
+    for listName in lists:
+        comboBox.addItem(' '.join(listName.split('_')))
+
+    randomBox.addStretch()
+    randomBox.addWidget(comboBox)
+    randomBox.addWidget(drawButton)
+    randomBox.addStretch()
+
+    # NAV BAR
+    navBarBox = QVBoxLayout()
+    navBarBox.addLayout(searchBarBox)
+    navBarBox.addLayout(randomBox)
+
     # GRID BOX
     gridBox = QGridLayout()
 
@@ -68,7 +103,16 @@ def window():
             gridBox.addLayout(cellLayout, i, j)
 
     def showMovies(moviesJSON):
-        moviesCount = len(moviesJSON['results'])
+        try:
+            moviesCount = len(moviesJSON['results'])
+        except TypeError:  # if moviesJSON is empty
+            for i in range(10):
+                cell = gridBox.findChildren(QVBoxLayout)[i]
+                cell.itemAt(0).widget().clear()
+                cell.itemAt(2).widget().clear()
+
+            return
+
         moviesIds.clear()
 
         for i in range(moviesCount):
@@ -82,7 +126,7 @@ def window():
                 cell.itemAt(2).widget().setText(title)
 
                 # set image
-                scaleValue = findScale(moviesJSON['results'][i]['primaryImage']['width'])
+                scaleValue = calculateImageScale(moviesJSON['results'][i]['primaryImage']['width'])
                 scale = QTransform().scale(scaleValue, scaleValue)
 
                 poster = QImage()
@@ -111,7 +155,7 @@ def window():
 
     # MAIN BOX
     mainBox = QVBoxLayout()
-    mainBox.addLayout(searchBarBox)
+    mainBox.addLayout(navBarBox)
     mainBox.addLayout(gridBox)
     mainBox.addStretch()
 

@@ -43,6 +43,8 @@ def getRandomMovies(list: str):
 
     if response.status_code != 200:
         raise ConnectionError("Get random movies request Error: " + str(response.status_code))
+    elif response.json()['results'] is None:
+        return []
 
     return response.json()
 
