@@ -4,7 +4,7 @@ from PyQt6.QtGui import *
 from PyQt6.QtCore import *
 from PyQt6.QtWidgets import *
 
-TARGET_WIDTH = 150.0  # width of images in grid
+TARGET_WIDTH = 150  # width of images in grid
 IMDB_LINK = "https://www.imdb.com/title/"
 
 moviesIds = []
@@ -19,6 +19,15 @@ def getMovieIdAndOpenWebBrowser(cell, grid):
     webbrowser.open(IMDB_LINK + movieId)
 
 
+def showErrorDialog():
+    msgDialog = QMessageBox()
+    msgDialog.setIcon(QMessageBox.Icon.Critical)
+    msgDialog.setText("Connection Error. Please try again")
+    msgDialog.setWindowTitle("Movies | Error")
+    msgDialog.exec()
+
+
+
 def window():
     app = QApplication([])
 
@@ -26,9 +35,9 @@ def window():
         try:
             movies = apiRequests.searchTitle(title)
             showMovies(movies)
-        except ConnectionError as e:
-            print(e)
-            return
+        except Exception as e:
+            print("Search Error: ", e)
+            showErrorDialog()
 
     # SEARCH BAR
     searchBarBox = QHBoxLayout()
@@ -53,7 +62,7 @@ def window():
 
             titleLabel = QLabel()
             titleLabel.setWordWrap(True)
-            titleLabel.setGeometry(QRect(0, 0, 150, 50))  # TODO check if it works
+            titleLabel.setMaximumWidth(TARGET_WIDTH)
             cellLayout.addWidget(titleLabel)
 
             gridBox.addLayout(cellLayout, i, j)
@@ -63,15 +72,16 @@ def window():
         moviesIds.clear()
 
         for i in range(moviesCount):
-            # set title
-            title = moviesJSON['results'][i]['originalTitleText']['text']
             cell = gridBox.findChildren(QVBoxLayout)[i]
-            cell.itemAt(2).widget().setText(title)
 
-            # set image
             try:
                 moviesIds.append(moviesJSON['results'][i]['id'])
 
+                # set title
+                title = moviesJSON['results'][i]['originalTitleText']['text']
+                cell.itemAt(2).widget().setText(title)
+
+                # set image
                 scaleValue = findScale(moviesJSON['results'][i]['primaryImage']['width'])
                 scale = QTransform().scale(scaleValue, scaleValue)
 
@@ -79,7 +89,8 @@ def window():
                 poster.loadFromData(apiRequests.getImage(moviesJSON['results'][i]['primaryImage']['url']))
 
                 cell.itemAt(0).widget().setPixmap(QPixmap(poster).transformed(scale))
-            except:
+            except Exception as e:
+                print("ShowMovies Error: ", e)
                 scale = QTransform().scale(1.47, 1.47)
                 cell.itemAt(0).widget().setPixmap(QPixmap("images/noImage.png").transformed(scale))
 
@@ -94,9 +105,9 @@ def window():
     try:
         randomMovies = apiRequests.getRandomMovies()
         showMovies(randomMovies)
-    except ConnectionError as e:
-        print(e)
-        return
+    except Exception as e:
+        print("Random Movies Error: ", e)
+        showErrorDialog()
 
     # MAIN BOX
     mainBox = QVBoxLayout()

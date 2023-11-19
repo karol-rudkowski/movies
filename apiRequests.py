@@ -15,7 +15,7 @@ def searchTitle(title: str):
     response = requests.get(url, headers=headers, params=querystring)
 
     if response.status_code != 200:
-        raise ConnectionError("Error: " + str(response.status_code))
+        raise ConnectionError("Search request Error: " + str(response.status_code))
 
     return response.json()
 
@@ -24,7 +24,7 @@ def getImage(url: str):
     response = requests.get(url)
 
     if response.status_code != 200:
-        raise ConnectionError("Error: " + str(response.status_code))
+        raise ConnectionError("Get image request Error: " + str(response.status_code))
 
     return response.content
 
@@ -42,6 +42,6 @@ def getRandomMovies():
     response = requests.get(url, headers=headers, params=querystring)
 
     if response.status_code != 200:
-        raise ConnectionError("Error: " + str(response.status_code))
+        raise ConnectionError("Get random movies request Error: " + str(response.status_code))
 
     return response.json()
