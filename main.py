@@ -70,26 +70,21 @@ def window():
 
             # set image
             try:
+                moviesIds.append(moviesJSON['results'][i]['id'])
+
                 scaleValue = findScale(moviesJSON['results'][i]['primaryImage']['width'])
                 scale = QTransform().scale(scaleValue, scaleValue)
 
                 poster = QImage()
                 poster.loadFromData(apiRequests.getImage(moviesJSON['results'][i]['primaryImage']['url']))
 
-                moviesIds.append(moviesJSON['results'][i]['id'])
-
-                cell.itemAt(0).widget().setPixmap(QPixmap(poster))
                 cell.itemAt(0).widget().setPixmap(QPixmap(poster).transformed(scale))
-
-                cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: getMovieIdAndOpenWebBrowser(c, gridBox)
-                cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: getMovieIdAndOpenWebBrowser(c, gridBox)
             except:
                 scale = QTransform().scale(1.47, 1.47)
-
                 cell.itemAt(0).widget().setPixmap(QPixmap("images/noImage.png").transformed(scale))
 
-                cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: getMovieIdAndOpenWebBrowser(c, gridBox)
-                cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: getMovieIdAndOpenWebBrowser(c, gridBox)
+            cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: getMovieIdAndOpenWebBrowser(c, gridBox)
+            cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: getMovieIdAndOpenWebBrowser(c, gridBox)
 
         for i in range(moviesCount, 10):
             cell = gridBox.findChildren(QVBoxLayout)[i]
