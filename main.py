@@ -103,7 +103,7 @@ def window():
             cell.itemAt(2).widget().clear()
 
     try:
-        randomMovies = apiRequests.getRandomMovies()
+        randomMovies = apiRequests.getRandomMovies("most_pop_movies")
         showMovies(randomMovies)
     except Exception as e:
         print("Random Movies Error: ", e)

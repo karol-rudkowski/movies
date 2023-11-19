@@ -29,10 +29,10 @@ def getImage(url: str):
     return response.content
 
 
-def getRandomMovies():
+def getRandomMovies(list: str):
     url = "https://moviesdatabase.p.rapidapi.com/titles/random"
 
-    querystring = {"list": "most_pop_movies"}
+    querystring = {"list": list}
 
     headers = {
         "X-RapidAPI-Key": config.rapidApiKey,
@@ -43,5 +43,21 @@ def getRandomMovies():
 
     if response.status_code != 200:
         raise ConnectionError("Get random movies request Error: " + str(response.status_code))
+
+    return response.json()
+
+
+def getLists():
+    url = "https://moviesdatabase.p.rapidapi.com/titles/utils/lists"
+
+    headers = {
+        "X-RapidAPI-Key": config.rapidApiKey,
+        "X-RapidAPI-Host": "moviesdatabase.p.rapidapi.com"
+    }
+
+    response = requests.get(url, headers=headers)
+
+    if response.status_code != 200:
+        raise ConnectionError("Get lists request Error: " + str(response.status_code))
 
     return response.json()
