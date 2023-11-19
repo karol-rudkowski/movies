@@ -45,21 +45,3 @@ def getRandomMovies():
         raise ConnectionError("Error: " + str(response.status_code))
 
     return response.json()
-
-
-def getTitleInfo(titleId: str):
-    url = "https://moviesdatabase.p.rapidapi.com/titles/" + titleId
-
-    querystring = {"info": "base_info"}
-
-    headers = {
-        "X-RapidAPI-Key": config.rapidApiKey,
-        "X-RapidAPI-Host": "moviesdatabase.p.rapidapi.com"
-    }
-
-    response = requests.get(url, headers=headers, params=querystring)
-
-    if response.status_code != 200:
-        raise ConnectionError("Error: " + str(response.status_code))
-
-    return response.json()

@@ -36,7 +36,7 @@ def window():
             cellLayout = QVBoxLayout()
 
             imageLabel = QLabel()
-            imageLabel.setPixmap(QPixmap("images/noImage.png"))
+            # imageLabel.setPixmap(QPixmap("images/noImage.png"))
             cellLayout.addWidget(imageLabel)
 
             cellLayout.addStretch()
@@ -49,40 +49,49 @@ def window():
             gridBox.addLayout(cellLayout, i, j)
 
 
+    def showMovies(moviesJSON):
+        moviesCount = len(moviesJSON['results'])
+
+        for i in range(moviesCount):
+            # set title
+            title = moviesJSON['results'][i]['originalTitleText']['text']
+            cell = gridBox.findChildren(QVBoxLayout)[i]
+            cell.itemAt(2).widget().setText(title)
+
+            # set image
+            try:
+                scaleValue = findScale(moviesJSON['results'][i]['primaryImage']['width'])
+                scale = QTransform().scale(scaleValue, scaleValue)
+
+                poster = QImage()
+                poster.loadFromData(apiRequests.getImage(moviesJSON['results'][i]['primaryImage']['url']))
+
+                moviesIds.append(moviesJSON['results'][i]['id'])
+
+                cell.itemAt(0).widget().setPixmap(QPixmap(poster))
+                cell.itemAt(0).widget().setPixmap(QPixmap(poster).transformed(scale))
+
+                cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
+                cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
+            except:
+                scale = QTransform().scale(1.47, 1.47)
+
+                cell.itemAt(0).widget().setPixmap(QPixmap("images/noImage.png").transformed(scale))
+
+                cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
+                cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
+
+        # for i in range(moviesCount, 10):
+        #     cell = gridBox.findChildren(QVBoxLayout)[i]
+        #     cell.hide()
+        #TODO check if it works
+
     try:
         randomMovies = apiRequests.getRandomMovies()
+        showMovies(randomMovies)
     except ConnectionError as e:
         print(e)
         return
-
-    for i in range(0, 10):
-        # set title
-        title = randomMovies['results'][i]['originalTitleText']['text']
-        cell = gridBox.findChildren(QVBoxLayout)[i]
-        cell.itemAt(2).widget().setText(title)
-
-        # set image
-        try:
-            scaleValue = findScale(randomMovies['results'][i]['primaryImage']['width'])
-            scale = QTransform().scale(scaleValue, scaleValue)
-
-            poster = QImage()
-            poster.loadFromData(apiRequests.getImage(randomMovies['results'][i]['primaryImage']['url']))
-
-            moviesIds.append(randomMovies['results'][i]['id'])
-
-            cell.itemAt(0).widget().setPixmap(QPixmap(poster))
-            cell.itemAt(0).widget().setPixmap(QPixmap(poster).transformed(scale))
-
-            cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
-            cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
-        except:
-            scale = QTransform().scale(1.47, 1.47)
-
-            cell.itemAt(0).widget().setPixmap(QPixmap("images/noImage.png").transformed(scale))
-
-            cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
-            cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
 
     # MAIN BOX
     mainBox = QVBoxLayout()
