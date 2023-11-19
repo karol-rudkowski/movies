@@ -4,24 +4,37 @@ from PyQt6.QtGui import *
 from PyQt6.QtCore import *
 from PyQt6.QtWidgets import *
 
-TARGET_SIZE = 150.0
+TARGET_WIDTH = 150.0  # width of images in grid
 IMDB_LINK = "https://www.imdb.com/title/"
-moviesIds = []
-def findScale(size) -> float:
-    return TARGET_SIZE / size
 
-def labelClicked(cell, grid):
-    id = moviesIds[grid.indexOf(cell)]
-    webbrowser.open(IMDB_LINK + id)
-    print(id)
+moviesIds = []
+
+
+def findScale(width) -> float:
+    return TARGET_WIDTH / width
+
+
+def getMovieIdAndOpenWebBrowser(cell, grid):
+    movieId = moviesIds[grid.indexOf(cell)]
+    webbrowser.open(IMDB_LINK + movieId)
+
 
 def window():
     app = QApplication([])
+
+    def search(title: str):
+        try:
+            movies = apiRequests.searchTitle(title)
+            showMovies(movies)
+        except ConnectionError as e:
+            print(e)
+            return
 
     # SEARCH BAR
     searchBarBox = QHBoxLayout()
     searchInput = QLineEdit()
     searchButton = QPushButton("Search")
+    searchButton.clicked.connect(lambda: search(searchInput.text()))
 
     searchBarBox.addStretch()
     searchBarBox.addWidget(searchInput)
@@ -34,23 +47,20 @@ def window():
     for i in range(0, 2):
         for j in range(0, 5):
             cellLayout = QVBoxLayout()
-
             imageLabel = QLabel()
-            # imageLabel.setPixmap(QPixmap("images/noImage.png"))
             cellLayout.addWidget(imageLabel)
-
             cellLayout.addStretch()
 
-            titleLabel = QLabel("title")
+            titleLabel = QLabel()
             titleLabel.setWordWrap(True)
-            titleLabel.setGeometry(QRect(0, 0, 150, 50))
+            titleLabel.setGeometry(QRect(0, 0, 150, 50))  # TODO check if it works
             cellLayout.addWidget(titleLabel)
 
             gridBox.addLayout(cellLayout, i, j)
 
-
     def showMovies(moviesJSON):
         moviesCount = len(moviesJSON['results'])
+        moviesIds.clear()
 
         for i in range(moviesCount):
             # set title
@@ -71,20 +81,20 @@ def window():
                 cell.itemAt(0).widget().setPixmap(QPixmap(poster))
                 cell.itemAt(0).widget().setPixmap(QPixmap(poster).transformed(scale))
 
-                cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
-                cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
+                cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: getMovieIdAndOpenWebBrowser(c, gridBox)
+                cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: getMovieIdAndOpenWebBrowser(c, gridBox)
             except:
                 scale = QTransform().scale(1.47, 1.47)
 
                 cell.itemAt(0).widget().setPixmap(QPixmap("images/noImage.png").transformed(scale))
 
-                cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
-                cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: labelClicked(c, gridBox)
+                cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: getMovieIdAndOpenWebBrowser(c, gridBox)
+                cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: getMovieIdAndOpenWebBrowser(c, gridBox)
 
-        # for i in range(moviesCount, 10):
-        #     cell = gridBox.findChildren(QVBoxLayout)[i]
-        #     cell.hide()
-        #TODO check if it works
+        for i in range(moviesCount, 10):
+            cell = gridBox.findChildren(QVBoxLayout)[i]
+            cell.itemAt(0).widget().clear()
+            cell.itemAt(2).widget().clear()
 
     try:
         randomMovies = apiRequests.getRandomMovies()
@@ -106,6 +116,7 @@ def window():
     window.show()
 
     app.exec()
+
 
 if __name__ == '__main__':
     window()
