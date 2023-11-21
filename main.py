@@ -1,11 +1,12 @@
 import apiRequests
 import webbrowser
+from pathlib import Path
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
 
 
 class MainWindow(QWidget):
-    TARGET_WIDTH = 150  # width of images in grid
+    TARGET_WIDTH = 180  # width of images in grid
     IMDB_LINK = "https://www.imdb.com/title/"
 
     moviesIds = []
@@ -29,8 +30,8 @@ class MainWindow(QWidget):
         # RANDOM MOVIES BAR
         randomBox = QHBoxLayout()
         comboBox = QComboBox()
-        drawButton = QPushButton("Show Random Movies")
-        drawButton.clicked.connect(
+        showRandomButton = QPushButton("Show Random Movies")
+        showRandomButton.clicked.connect(
             lambda: self.showMovies(apiRequests.getRandomMovies(self.lists[comboBox.currentIndex()])))
 
         self.getLists()
@@ -40,7 +41,7 @@ class MainWindow(QWidget):
 
         randomBox.addStretch()
         randomBox.addWidget(comboBox)
-        randomBox.addWidget(drawButton)
+        randomBox.addWidget(showRandomButton)
         randomBox.addStretch()
 
         # NAV BAR
@@ -74,6 +75,7 @@ class MainWindow(QWidget):
                 self.gridBox.addLayout(cellLayout, i, j)
 
         try:
+            # TODO randomMovies = apiRequests.getRandomMovies(self.lists[0])
             randomMovies = apiRequests.getRandomMovies(self.lists[1])
             self.showMovies(randomMovies)
         except Exception as e:
@@ -141,7 +143,9 @@ class MainWindow(QWidget):
                 cell.itemAt(0).widget().setPixmap(QPixmap(poster).transformed(scale))
             except Exception as e:
                 print("ShowMovies Error: ", e)
-                scale = QTransform().scale(1.47, 1.47)
+
+                scaleValue = self.calculateImageScale(102)
+                scale = QTransform().scale(scaleValue, scaleValue)
                 cell.itemAt(0).widget().setPixmap(QPixmap("images/noImage.png").transformed(scale))
 
             cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: self.getMovieIdAndOpenWebBrowser(c,
@@ -161,7 +165,9 @@ class MainWindow(QWidget):
         msgDialog.setWindowTitle("Movies | Error")
         msgDialog.exec()
 
+
 if __name__ == '__main__':
     app = QApplication([])
+    app.setStyleSheet(Path('style.qss').read_text())
     window = MainWindow()
     app.exec()
