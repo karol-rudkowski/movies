@@ -1,6 +1,5 @@
-import requests
-
 import config
+import requests
 
 
 def searchTitle(title: str):
@@ -15,10 +14,8 @@ def searchTitle(title: str):
 
     response = requests.get(url, headers=headers, params=querystring)
 
-    if response.status_code == 404:
-        raise requests.exceptions.HTTPError("404 Client Error")
-    elif response.status_code != 200:
-        raise requests.exceptions.RequestException("Search request Error: " + str(response.status_code))
+    if response.status_code != 200:
+        raise ConnectionError("Search request Error: " + str(response.status_code))
 
     return response.json()
 
@@ -27,7 +24,7 @@ def getImage(url: str):
     response = requests.get(url)
 
     if response.status_code != 200:
-        raise requests.exceptions.RequestException("Get image request Error: " + str(response.status_code))
+        raise ConnectionError("Get image request Error: " + str(response.status_code))
 
     return response.content
 
@@ -45,7 +42,7 @@ def getRandomMovies(list: str):
     response = requests.get(url, headers=headers, params=querystring)
 
     if response.status_code != 200:
-        raise requests.exceptions.RequestException("Get random movies request Error: " + str(response.status_code))
+        raise ConnectionError("Get random movies request Error: " + str(response.status_code))
     elif response.json()['results'] is None:
         return []
 
@@ -63,6 +60,6 @@ def getLists():
     response = requests.get(url, headers=headers)
 
     if response.status_code != 200:
-        raise requests.exceptions.RequestException("Get lists request Error: " + str(response.status_code))
+        raise ConnectionError("Get lists request Error: " + str(response.status_code))
 
     return response.json()

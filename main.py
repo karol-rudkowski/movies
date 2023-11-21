@@ -1,11 +1,8 @@
+import apiRequests
 import webbrowser
 from pathlib import Path
-from requests import exceptions as requestsExceptions
-
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
-
-import apiRequests
 
 
 class MainWindow(QWidget):
@@ -37,7 +34,10 @@ class MainWindow(QWidget):
         showRandomButton.clicked.connect(
             lambda: self.showMovies(apiRequests.getRandomMovies(self.lists[comboBox.currentIndex()])))
 
-        self.setLists(comboBox)
+        self.getLists()
+
+        for listName in self.lists:
+            comboBox.addItem(' '.join(listName.split('_')))
 
         randomBox.addStretch()
         randomBox.addWidget(comboBox)
@@ -94,31 +94,24 @@ class MainWindow(QWidget):
         movieId = self.moviesIds[grid.indexOf(cell)]
         webbrowser.open(self.IMDB_LINK + movieId)
 
-    def setLists(self, cbox: QComboBox):
+    def getLists(self):
         try:
             listsResult = apiRequests.getLists()
-
-            for listName in listsResult['results']:
-                self.lists.append(listName)
-
-            for listName in self.lists:
-                cbox.addItem(' '.join(listName.split('_')))
-
         except Exception as e:
             print("Get Lists Error: ", e)
             self.showErrorDialog()
             return
 
+        for listName in listsResult['results']:
+            self.lists.append(listName)
+
     def search(self, title: str):
         try:
             movies = apiRequests.searchTitle(title)
             self.showMovies(movies)
-        except requestsExceptions.HTTPError as e:
-            print("Search Error - Incorrect Data: ", e)
-            self.showErrorDialog(1)
         except Exception as e:
             print("Search Error: ", e)
-            self.showErrorDialog(0)
+            self.showErrorDialog()
 
     def showMovies(self, moviesJSON):
         try:
@@ -178,16 +171,10 @@ class MainWindow(QWidget):
             cell.itemAt(2).widget().clear()
             cell.itemAt(3).widget().clear()
 
-    def showErrorDialog(self, error=0):
+    def showErrorDialog(self):
         msgDialog = QMessageBox()
-
-        if error == 1:
-            msgDialog.setText("Incorrect data was entered in the search field")
-            msgDialog.setIcon(QMessageBox.Icon.Warning)
-        else:
-            msgDialog.setText("Connection Error. Please try again")
-            msgDialog.setIcon(QMessageBox.Icon.Critical)
-
+        msgDialog.setIcon(QMessageBox.Icon.Critical)
+        msgDialog.setText("Connection Error. Please try again")
         msgDialog.setWindowTitle("Movies | Error")
         msgDialog.exec()
 
