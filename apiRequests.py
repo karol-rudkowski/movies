@@ -5,7 +5,7 @@ import requests
 def searchTitle(title: str):
     url = "https://moviesdatabase.p.rapidapi.com/titles/search/title/" + title
 
-    querystring = {"exact": "false"}
+    querystring = {"info": "base_info", "exact": "false"}
 
     headers = {
         "X-RapidAPI-Key": config.rapidApiKey,
@@ -32,7 +32,7 @@ def getImage(url: str):
 def getRandomMovies(list: str):
     url = "https://moviesdatabase.p.rapidapi.com/titles/random"
 
-    querystring = {"list": list}
+    querystring = {"info": "base_info", "list": list}
 
     headers = {
         "X-RapidAPI-Key": config.rapidApiKey,

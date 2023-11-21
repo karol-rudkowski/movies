@@ -67,6 +67,9 @@ class MainWindow(QWidget):
                 cellLayout.addWidget(imageLabel)
                 cellLayout.addStretch()
 
+                ratingLabel = QLabel()
+                cellLayout.addWidget(ratingLabel)
+
                 titleLabel = QLabel()
                 titleLabel.setWordWrap(True)
                 titleLabel.setMaximumWidth(self.TARGET_WIDTH)
@@ -118,6 +121,7 @@ class MainWindow(QWidget):
                 cell = self.gridBox.findChildren(QVBoxLayout)[i]
                 cell.itemAt(0).widget().clear()
                 cell.itemAt(2).widget().clear()
+                cell.itemAt(3).widget().clear()
 
             return
 
@@ -131,16 +135,24 @@ class MainWindow(QWidget):
 
                 # set title
                 title = moviesJSON['results'][i]['originalTitleText']['text']
-                cell.itemAt(2).widget().setText(title)
+                cell.itemAt(3).widget().setText(title)
+
+                # set rating
+                rating = moviesJSON['results'][i]['ratingsSummary']['aggregateRating']
+
+                if rating is None:
+                    rating = "?"
+
+                cell.itemAt(2).widget().setText('\u2605 ' + str(rating))
 
                 # set image
                 scaleValue = self.calculateImageScale(moviesJSON['results'][i]['primaryImage']['width'])
                 scale = QTransform().scale(scaleValue, scaleValue)
 
-                poster = QImage()
-                poster.loadFromData(apiRequests.getImage(moviesJSON['results'][i]['primaryImage']['url']))
+                posterImage = QImage()
+                posterImage.loadFromData(apiRequests.getImage(moviesJSON['results'][i]['primaryImage']['url']))
 
-                cell.itemAt(0).widget().setPixmap(QPixmap(poster).transformed(scale))
+                cell.itemAt(0).widget().setPixmap(QPixmap(posterImage).transformed(scale))
             except Exception as e:
                 print("ShowMovies Error: ", e)
 
@@ -150,13 +162,14 @@ class MainWindow(QWidget):
 
             cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: self.getMovieIdAndOpenWebBrowser(c,
                                                                                                              self.gridBox)
-            cell.itemAt(2).widget().mousePressEvent = lambda event, c=cell: self.getMovieIdAndOpenWebBrowser(c,
+            cell.itemAt(3).widget().mousePressEvent = lambda event, c=cell: self.getMovieIdAndOpenWebBrowser(c,
                                                                                                              self.gridBox)
 
         for i in range(moviesCount, 10):
             cell = self.gridBox.findChildren(QVBoxLayout)[i]
             cell.itemAt(0).widget().clear()
             cell.itemAt(2).widget().clear()
+            cell.itemAt(3).widget().clear()
 
     def showErrorDialog(self):
         msgDialog = QMessageBox()
