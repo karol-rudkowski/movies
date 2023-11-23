@@ -51,6 +51,23 @@ def getRandomMovies(list: str):
 
     return response.json()
 
+def getInfo(movieId: str):
+    url = "https://moviesdatabase.p.rapidapi.com/titles/" + movieId
+
+    querystring = {"info": "base_info"}
+
+    headers = {
+        "X-RapidAPI-Key": config.rapidApiKey,
+        "X-RapidAPI-Host": "moviesdatabase.p.rapidapi.com"
+    }
+
+    response = requests.get(url, headers=headers, params=querystring)
+
+    if response.status_code != 200:
+        raise requests.exceptions.RequestException("Get lists request Error: " + str(response.status_code))
+
+    return response.json()
+
 
 def getLists():
     url = "https://moviesdatabase.p.rapidapi.com/titles/utils/lists"
