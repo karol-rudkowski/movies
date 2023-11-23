@@ -28,3 +28,7 @@ QLabel {
     font-weight: 600;
     font-size: 14px;
 }
+
+QWidget#cellWidget QLabel {
+/*    padding: 2px 0px;*/
+}

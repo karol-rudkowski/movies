@@ -76,7 +76,11 @@ class MainWindow(QWidget):
                 titleLabel.setMaximumWidth(self.TARGET_WIDTH)
                 cellLayout.addWidget(titleLabel)
 
-                self.gridBox.addLayout(cellLayout, i, j)
+                cellWidget = QWidget()
+                cellWidget.setObjectName("cellWidget")
+                cellWidget.setLayout(cellLayout)
+
+                self.gridBox.addWidget(cellWidget, i, j)
 
         try:
             # TODO randomMovies = apiRequests.getRandomMovies(self.lists[0])
@@ -126,7 +130,8 @@ class MainWindow(QWidget):
             moviesCount = len(moviesJSON['results'])
         except TypeError:  # if moviesJSON is empty
             for i in range(10):
-                cell = self.gridBox.findChildren(QVBoxLayout)[i]
+                cell = self.gridBox.findChildren(QWidget)[i]
+
                 cell.itemAt(0).widget().clear()
                 cell.itemAt(2).widget().clear()
                 cell.itemAt(3).widget().clear()
@@ -136,7 +141,7 @@ class MainWindow(QWidget):
         self.moviesIds.clear()
 
         for i in range(moviesCount):
-            cell = self.gridBox.findChildren(QVBoxLayout)[i]
+            cell = self.gridBox.itemAt(i).widget().layout()
 
             try:
                 self.moviesIds.append(moviesJSON['results'][i]['id'])
@@ -174,7 +179,8 @@ class MainWindow(QWidget):
                                                                                                              self.gridBox)
 
         for i in range(moviesCount, 10):
-            cell = self.gridBox.findChildren(QVBoxLayout)[i]
+            cell = self.gridBox.itemAt(i).widget().layout()
+
             cell.itemAt(0).widget().clear()
             cell.itemAt(2).widget().clear()
             cell.itemAt(3).widget().clear()
