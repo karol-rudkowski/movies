@@ -9,7 +9,7 @@ import apiRequests
 
 
 class MainWindow(QWidget):
-    TARGET_WIDTH = 180  # width of images in grid
+    TARGET_WIDTH = 150  # width of images in grid
     IMDB_LINK = "https://www.imdb.com/title/"
 
     moviesIds = []
@@ -48,6 +48,7 @@ class MainWindow(QWidget):
         navBarBox = QVBoxLayout()
         navBarBox.addLayout(searchBarBox)
         navBarBox.addLayout(randomBox)
+
 
         # GRID BOX
         self.gridBox = QGridLayout()
@@ -163,7 +164,7 @@ class MainWindow(QWidget):
             except Exception as e:
                 print("ShowMovies Error: ", e)
 
-                scaleValue = self.calculateImageScale(102)
+                scaleValue = self.calculateImageScale(150)
                 scale = QTransform().scale(scaleValue, scaleValue)
                 cell.itemAt(0).widget().setPixmap(QPixmap("images/noImage.png").transformed(scale))
 
