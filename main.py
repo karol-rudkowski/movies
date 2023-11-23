@@ -53,10 +53,28 @@ class MainWindow(QWidget):
         # GRID BOX
         self.gridBox = QGridLayout()
 
+        # DESCRIPTION BOX
+        self.descriptionBox = QVBoxLayout()
+
+        miTitleLabel = QLabel()
+        miTitleLabel.setObjectName("miTitleLabel")
+        miPlotLabel = QLabel()
+        miPlotLabel.setWordWrap(True)
+        miRelease = QLabel()
+        miGoToWebButton = QPushButton("Go to IMDB")
+        miGoToWebButton.setObjectName("miGoToWebButton")
+        miGoToWebButton.setVisible(False)
+
+        self.descriptionBox.addWidget(miTitleLabel)
+        self.descriptionBox.addWidget(miPlotLabel)
+        self.descriptionBox.addWidget(miRelease)
+        self.descriptionBox.addWidget(miGoToWebButton)
+
         # MAIN BOX
         mainBox = QVBoxLayout()
         mainBox.addLayout(navBarBox)
         mainBox.addLayout(self.gridBox)
+        mainBox.addLayout(self.descriptionBox)
         mainBox.addStretch()
 
         self.setLayout(mainBox)
@@ -95,9 +113,39 @@ class MainWindow(QWidget):
     def calculateImageScale(self, width) -> float:
         return self.TARGET_WIDTH / width
 
-    def getMovieIdAndOpenWebBrowser(self, cell, grid):
-        movieId = self.moviesIds[grid.indexOf(cell)]
+    def openMovieWebPage(self, movieId: str):
         webbrowser.open(self.IMDB_LINK + movieId)
+
+    def getMoreMovieInfo(self, cell, grid):
+        movieId = self.moviesIds[grid.indexOf(cell)]
+
+        try:
+            movieInfo = apiRequests.getInfo(movieId)
+        except Exception as e:
+            print("Get Movie Info Error: ", e)
+            self.showErrorDialog()
+            return
+
+        self.descriptionBox.itemAt(3).widget().setVisible(True)
+        self.descriptionBox.itemAt(3).widget().mousePressEvent = lambda event: self.openMovieWebPage(movieId)
+
+        try:
+            self.descriptionBox.itemAt(0).widget().setText(movieInfo['results']['originalTitleText']['text'])
+        except Exception as e:
+            print(e, ": originalTitleText")
+
+        try:
+            self.descriptionBox.itemAt(1).widget().setText(movieInfo['results']['plot']['plotText']['plainText'])
+        except Exception as e:
+            print(e, ": plotText")
+
+        try:
+            date = movieInfo['results']['releaseDate']
+            self.descriptionBox.itemAt(2).widget().setText(
+                'Release date: ' + str(date['day']) + '.' + str(date['month']) + '.' + str(date['year']))
+        except Exception as e:
+            print(e, ": releaseDate")
+
 
     def setLists(self, cbox: QComboBox):
         try:
@@ -141,7 +189,8 @@ class MainWindow(QWidget):
         self.moviesIds.clear()
 
         for i in range(moviesCount):
-            cell = self.gridBox.itemAt(i).widget().layout()
+            cellParent = self.gridBox.itemAt(i)
+            cell = cellParent.widget().layout()
 
             try:
                 self.moviesIds.append(moviesJSON['results'][i]['id'])
@@ -173,10 +222,10 @@ class MainWindow(QWidget):
                 scale = QTransform().scale(scaleValue, scaleValue)
                 cell.itemAt(0).widget().setPixmap(QPixmap("images/noImage.png").transformed(scale))
 
-            cell.itemAt(0).widget().mousePressEvent = lambda event, c=cell: self.getMovieIdAndOpenWebBrowser(c,
-                                                                                                             self.gridBox)
-            cell.itemAt(3).widget().mousePressEvent = lambda event, c=cell: self.getMovieIdAndOpenWebBrowser(c,
-                                                                                                             self.gridBox)
+            cell.itemAt(0).widget().mousePressEvent = lambda event, c=cellParent: self.getMoreMovieInfo(c,
+                                                                                                        self.gridBox)
+            cell.itemAt(3).widget().mousePressEvent = lambda event, c=cellParent: self.getMoreMovieInfo(c,
+                                                                                                        self.gridBox)
 
         for i in range(moviesCount, 10):
             cell = self.gridBox.itemAt(i).widget().layout()
