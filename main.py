@@ -63,7 +63,7 @@ class MainWindow(QScrollArea):
 
         dRelease = QLabel()
 
-        dGoToWebButton = QPushButton('Go to IMDB')
+        dGoToWebButton = QPushButton('Go to IMDb')
         dGoToWebButton.setObjectName('dGoToWebButton')
 
         self.descriptionBox.addWidget(dTitleLabel)
@@ -88,7 +88,7 @@ class MainWindow(QScrollArea):
         self.setVerticalScrollBarPolicy(QtCoreQt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(QtCoreQt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setWidgetResizable(True)
-        self.setMinimumSize(900, 800)
+        self.setMinimumSize(900, 750)
         self.setWidget(mainWidget)
 
         # GRID CELLS
@@ -249,7 +249,7 @@ class MainWindow(QScrollArea):
 
                 scaleValue = self.calculateImageScale(150)
                 scale = QTransform().scale(scaleValue, scaleValue)
-                cell.itemAt(0).widget().setPixmap(QPixmap('images/noImage.png').transformed(scale))
+                cell.itemAt(0).widget().setPixmap(QPixmap('assets/images/noImage.png').transformed(scale))
 
             cell.itemAt(0).widget().mousePressEvent = lambda event, c=cellParent: \
                 self.getMoreMovieInfo(c, self.gridBox)
@@ -282,6 +282,8 @@ class MainWindow(QScrollArea):
 
 if __name__ == '__main__':
     app = QApplication([])
+    QFontDatabase.addApplicationFont('assets/fonts/Lato-Regular.ttf')
+    QFontDatabase.addApplicationFont('assets/fonts/Lato-Bold.ttf')
     app.setStyleSheet(Path('style.qss').read_text())
     window = MainWindow()
     app.exec()
