@@ -11,19 +11,19 @@ import apiRequests
 
 class MainWindow(QScrollArea):
     TARGET_WIDTH = 150  # width of images in grid
-    IMDB_LINK = "https://www.imdb.com/title/"
+    IMDB_LINK = 'https://www.imdb.com/title/'
 
     moviesIds = []
     lists = []
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Movies")
+        self.setWindowTitle('Movies')
 
         # SEARCH BAR
         searchBarBox = QHBoxLayout()
         searchInput = QLineEdit()
-        searchButton = QPushButton("Search")
+        searchButton = QPushButton('Search')
         searchButton.clicked.connect(lambda: self.search(searchInput.text()))
 
         searchBarBox.addStretch()
@@ -34,9 +34,8 @@ class MainWindow(QScrollArea):
         # RANDOM MOVIES BAR
         randomBox = QHBoxLayout()
         comboBox = QComboBox()
-        showRandomButton = QPushButton("Show Random Movies")
-        showRandomButton.clicked.connect(
-            lambda: self.showMovies(apiRequests.getRandomMovies(self.lists[comboBox.currentIndex()])))
+        showRandomButton = QPushButton('Show Random Movies')
+        showRandomButton.clicked.connect(lambda: self.showMovies(apiRequests.getRandomMovies(self.lists[comboBox.currentIndex()])))
 
         self.setLists(comboBox)
 
@@ -57,12 +56,12 @@ class MainWindow(QScrollArea):
         self.descriptionBox = QVBoxLayout()
 
         miTitleLabel = QLabel()
-        miTitleLabel.setObjectName("miTitleLabel")
+        miTitleLabel.setObjectName('miTitleLabel')
         miPlotLabel = QLabel()
         miPlotLabel.setWordWrap(True)
         miRelease = QLabel()
-        miGoToWebButton = QPushButton("Go to IMDB")
-        miGoToWebButton.setObjectName("miGoToWebButton")
+        miGoToWebButton = QPushButton('Go to IMDB')
+        miGoToWebButton.setObjectName('miGoToWebButton')
         miGoToWebButton.setVisible(False)
 
         self.descriptionBox.addWidget(miTitleLabel)
@@ -102,7 +101,7 @@ class MainWindow(QScrollArea):
                 cellLayout.addWidget(titleLabel)
 
                 cellWidget = QWidget()
-                cellWidget.setObjectName("cellWidget")
+                cellWidget.setObjectName('cellWidget')
                 cellWidget.setLayout(cellLayout)
 
                 self.gridBox.addWidget(cellWidget, i, j)
@@ -112,7 +111,7 @@ class MainWindow(QScrollArea):
             randomMovies = apiRequests.getRandomMovies(self.lists[1])
             self.showMovies(randomMovies)
         except Exception as e:
-            print("Random Movies Error: ", e)
+            print('Random Movies Error: ', e)
             self.showErrorDialog()
 
         self.show()
@@ -123,36 +122,50 @@ class MainWindow(QScrollArea):
     def openMovieWebPage(self, movieId: str):
         webbrowser.open(self.IMDB_LINK + movieId)
 
+    def clearDescription(self):
+        self.descriptionBox.itemAt(0).widget().clear()
+        self.descriptionBox.itemAt(1).widget().clear()
+        self.descriptionBox.itemAt(2).widget().clear()
+        self.descriptionBox.itemAt(3).widget().setVisible(False)
+
     def getMoreMovieInfo(self, cell, grid):
         movieId = self.moviesIds[grid.indexOf(cell)]
 
         try:
             movieInfo = apiRequests.getInfo(movieId)
         except Exception as e:
-            print("Get Movie Info Error: ", e)
+            print('Get Movie Info Error: ', e)
             self.showErrorDialog()
             return
 
+        self.clearDescription()
         self.descriptionBox.itemAt(3).widget().setVisible(True)
         self.descriptionBox.itemAt(3).widget().mousePressEvent = lambda event: self.openMovieWebPage(movieId)
 
         try:
             self.descriptionBox.itemAt(0).widget().setText(movieInfo['results']['originalTitleText']['text'])
         except Exception as e:
-            print(e, ": originalTitleText")
+            print(e, ': originalTitleText')
 
         try:
             self.descriptionBox.itemAt(1).widget().setText(movieInfo['results']['plot']['plotText']['plainText'])
         except Exception as e:
-            print(e, ": plotText")
+            print(e, ': plotText')
 
         try:
             date = movieInfo['results']['releaseDate']
-            self.descriptionBox.itemAt(2).widget().setText(
-                'Release date: ' + str(date['day']) + '.' + str(date['month']) + '.' + str(date['year']))
-        except Exception as e:
-            print(e, ": releaseDate")
+            dateString = ''
 
+            if date['day'] is not None:
+                dateString = 'Release date: ' + str(date['day']) + '.' + str(date['month']) + '.' + str(date['year'])
+            elif date['month'] is not None:
+                dateString = 'Release date: ' + str(date['month']) + '.' + str(date['year'])
+            elif date['year'] is not None:
+                dateString = 'Release date: ' + str(date['year'])
+
+            self.descriptionBox.itemAt(2).widget().setText(dateString)
+        except Exception as e:
+            print(e, ': releaseDate')
 
     def setLists(self, cbox: QComboBox):
         try:
@@ -165,22 +178,26 @@ class MainWindow(QScrollArea):
                 cbox.addItem(' '.join(listName.split('_')))
 
         except Exception as e:
-            print("Get Lists Error: ", e)
+            print('Get Lists Error: ', e)
             self.showErrorDialog()
             return
 
     def search(self, title: str):
+        self.clearDescription()
+
         try:
             movies = apiRequests.searchTitle(title)
             self.showMovies(movies)
         except requestsExceptions.HTTPError as e:
-            print("Search Error - Incorrect Data: ", e)
+            print('Search Error - Incorrect Data: ', e)
             self.showErrorDialog(1)
         except Exception as e:
-            print("Search Error: ", e)
+            print('Search Error: ', e)
             self.showErrorDialog(0)
 
     def showMovies(self, moviesJSON):
+        self.clearDescription()
+
         try:
             moviesCount = len(moviesJSON['results'])
         except TypeError:  # if moviesJSON is empty
@@ -210,7 +227,7 @@ class MainWindow(QScrollArea):
                 rating = moviesJSON['results'][i]['ratingsSummary']['aggregateRating']
 
                 if rating is None:
-                    rating = "?"
+                    rating = '?'
 
                 cell.itemAt(2).widget().setText('\u2605 ' + str(rating))
 
@@ -223,11 +240,11 @@ class MainWindow(QScrollArea):
 
                 cell.itemAt(0).widget().setPixmap(QPixmap(posterImage).transformed(scale))
             except Exception as e:
-                print("ShowMovies Error: ", e)
+                print('ShowMovies Error: ', e)
 
                 scaleValue = self.calculateImageScale(150)
                 scale = QTransform().scale(scaleValue, scaleValue)
-                cell.itemAt(0).widget().setPixmap(QPixmap("images/noImage.png").transformed(scale))
+                cell.itemAt(0).widget().setPixmap(QPixmap('images/noImage.png').transformed(scale))
 
             cell.itemAt(0).widget().mousePressEvent = lambda event, c=cellParent: self.getMoreMovieInfo(c,
                                                                                                         self.gridBox)
@@ -245,13 +262,13 @@ class MainWindow(QScrollArea):
         msgDialog = QMessageBox()
 
         if error == 1:
-            msgDialog.setText("Incorrect data was entered in the search field")
+            msgDialog.setText('Incorrect data was entered in the search field')
             msgDialog.setIcon(QMessageBox.Icon.Warning)
         else:
-            msgDialog.setText("Connection Error. Please try again")
+            msgDialog.setText('Connection Error. Please try again')
             msgDialog.setIcon(QMessageBox.Icon.Critical)
 
-        msgDialog.setWindowTitle("Movies | Error")
+        msgDialog.setWindowTitle('Movies | Error')
         msgDialog.exec()
 
 
