@@ -4,7 +4,7 @@ from requests import exceptions as requestsExceptions
 
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
-from PyQt6.QtCore import Qt as QtCore
+from PyQt6.QtCore import Qt as QtCoreQt
 
 import apiRequests
 
@@ -70,19 +70,23 @@ class MainWindow(QScrollArea):
         self.descriptionBox.addWidget(dPlotLabel)
         self.descriptionBox.addWidget(dRelease)
         self.descriptionBox.addWidget(dGoToWebButton)
+        self.descriptionBox.addStretch()
+
+        descriptionWidget = QWidget()
+        descriptionWidget.setLayout(self.descriptionBox)
 
         # MAIN BOX
         mainBox = QVBoxLayout()
         mainBox.addLayout(navBarBox)
         mainBox.addLayout(self.gridBox)
-        mainBox.addLayout(self.descriptionBox)
+        mainBox.addWidget(descriptionWidget)
         mainBox.addStretch()
 
         mainWidget = QWidget()
         mainWidget.setLayout(mainBox)
 
-        self.setVerticalScrollBarPolicy(QtCore.ScrollBarPolicy.ScrollBarAlwaysOn)
-        self.setHorizontalScrollBarPolicy(QtCore.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(QtCoreQt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setHorizontalScrollBarPolicy(QtCoreQt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setWidgetResizable(True)
         self.setMinimumSize(900, 800)
         self.setWidget(mainWidget)

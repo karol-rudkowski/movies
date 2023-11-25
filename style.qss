@@ -29,6 +29,14 @@ QLabel {
     font-size: 14px;
 }
 
-QWidget#cellWidget QLabel {
-/*    padding: 2px 0px;*/
+QWidget#descriptionWidget QLabel{
+    padding: 4px 0px;
+}
+
+QLabel#dTitleLabel {
+    font-size: 18px;
+}
+
+QPushButton#dGoToWebButton {
+    margin: 16px 0px;
 }
