@@ -4,13 +4,13 @@ from requests import exceptions as requestsExceptions
 
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt as QtCore
 
 import apiRequests
 
 
 class MainWindow(QScrollArea):
-    TARGET_WIDTH = 150  # width of images in grid
+    TARGET_WIDTH = 150  # width of grid images
     IMDB_LINK = 'https://www.imdb.com/title/'
 
     moviesIds = []
@@ -55,19 +55,21 @@ class MainWindow(QScrollArea):
         # DESCRIPTION BOX
         self.descriptionBox = QVBoxLayout()
 
-        miTitleLabel = QLabel()
-        miTitleLabel.setObjectName('miTitleLabel')
-        miPlotLabel = QLabel()
-        miPlotLabel.setWordWrap(True)
-        miRelease = QLabel()
-        miGoToWebButton = QPushButton('Go to IMDB')
-        miGoToWebButton.setObjectName('miGoToWebButton')
-        miGoToWebButton.setVisible(False)
+        dTitleLabel = QLabel()
+        dTitleLabel.setObjectName('dTitleLabel')
 
-        self.descriptionBox.addWidget(miTitleLabel)
-        self.descriptionBox.addWidget(miPlotLabel)
-        self.descriptionBox.addWidget(miRelease)
-        self.descriptionBox.addWidget(miGoToWebButton)
+        dPlotLabel = QLabel()
+        dPlotLabel.setWordWrap(True)
+
+        dRelease = QLabel()
+
+        dGoToWebButton = QPushButton('Go to IMDB')
+        dGoToWebButton.setObjectName('dGoToWebButton')
+
+        self.descriptionBox.addWidget(dTitleLabel)
+        self.descriptionBox.addWidget(dPlotLabel)
+        self.descriptionBox.addWidget(dRelease)
+        self.descriptionBox.addWidget(dGoToWebButton)
 
         # MAIN BOX
         mainBox = QVBoxLayout()
@@ -79,12 +81,13 @@ class MainWindow(QScrollArea):
         mainWidget = QWidget()
         mainWidget.setLayout(mainBox)
 
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(QtCore.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setHorizontalScrollBarPolicy(QtCore.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setWidgetResizable(True)
         self.setMinimumSize(900, 800)
         self.setWidget(mainWidget)
 
+        # GRID CELLS
         for i in range(0, 2):
             for j in range(0, 5):
                 cellLayout = QVBoxLayout()
@@ -107,8 +110,7 @@ class MainWindow(QScrollArea):
                 self.gridBox.addWidget(cellWidget, i, j)
 
         try:
-            # TODO randomMovies = apiRequests.getRandomMovies(self.lists[0])
-            randomMovies = apiRequests.getRandomMovies(self.lists[1])
+            randomMovies = apiRequests.getRandomMovies(self.lists[2])
             self.showMovies(randomMovies)
         except Exception as e:
             print('Random Movies Error: ', e)
@@ -195,12 +197,13 @@ class MainWindow(QScrollArea):
             print('Search Error: ', e)
             self.showErrorDialog(0)
 
-    def showMovies(self, moviesJSON):
+    def showMovies(self, moviesJson):
         self.clearDescription()
+        self.moviesIds.clear()
 
         try:
-            moviesCount = len(moviesJSON['results'])
-        except TypeError:  # if moviesJSON is empty
+            moviesCount = len(moviesJson['results'])
+        except TypeError:  # if moviesJson is empty
             for i in range(10):
                 cell = self.gridBox.findChildren(QWidget)[i]
 
@@ -210,21 +213,19 @@ class MainWindow(QScrollArea):
 
             return
 
-        self.moviesIds.clear()
-
         for i in range(moviesCount):
             cellParent = self.gridBox.itemAt(i)
             cell = cellParent.widget().layout()
 
             try:
-                self.moviesIds.append(moviesJSON['results'][i]['id'])
+                self.moviesIds.append(moviesJson['results'][i]['id'])
 
                 # set title
-                title = moviesJSON['results'][i]['originalTitleText']['text']
+                title = moviesJson['results'][i]['originalTitleText']['text']
                 cell.itemAt(3).widget().setText(title)
 
                 # set rating
-                rating = moviesJSON['results'][i]['ratingsSummary']['aggregateRating']
+                rating = moviesJson['results'][i]['ratingsSummary']['aggregateRating']
 
                 if rating is None:
                     rating = '?'
@@ -232,11 +233,11 @@ class MainWindow(QScrollArea):
                 cell.itemAt(2).widget().setText('\u2605 ' + str(rating))
 
                 # set image
-                scaleValue = self.calculateImageScale(moviesJSON['results'][i]['primaryImage']['width'])
+                scaleValue = self.calculateImageScale(moviesJson['results'][i]['primaryImage']['width'])
                 scale = QTransform().scale(scaleValue, scaleValue)
 
                 posterImage = QImage()
-                posterImage.loadFromData(apiRequests.getImage(moviesJSON['results'][i]['primaryImage']['url']))
+                posterImage.loadFromData(apiRequests.getImage(moviesJson['results'][i]['primaryImage']['url']))
 
                 cell.itemAt(0).widget().setPixmap(QPixmap(posterImage).transformed(scale))
             except Exception as e:
@@ -246,11 +247,14 @@ class MainWindow(QScrollArea):
                 scale = QTransform().scale(scaleValue, scaleValue)
                 cell.itemAt(0).widget().setPixmap(QPixmap('images/noImage.png').transformed(scale))
 
-            cell.itemAt(0).widget().mousePressEvent = lambda event, c=cellParent: self.getMoreMovieInfo(c,
-                                                                                                        self.gridBox)
-            cell.itemAt(3).widget().mousePressEvent = lambda event, c=cellParent: self.getMoreMovieInfo(c,
-                                                                                                        self.gridBox)
+            cell.itemAt(0).widget().mousePressEvent = lambda event, c=cellParent: \
+                self.getMoreMovieInfo(c, self.gridBox)
+            cell.itemAt(2).widget().mousePressEvent = lambda event, c=cellParent: \
+                self.getMoreMovieInfo(c, self.gridBox)
+            cell.itemAt(3).widget().mousePressEvent = lambda event, c=cellParent: \
+                self.getMoreMovieInfo(c, self.gridBox)
 
+        # clear the remaining cells
         for i in range(moviesCount, 10):
             cell = self.gridBox.itemAt(i).widget().layout()
 
@@ -262,7 +266,7 @@ class MainWindow(QScrollArea):
         msgDialog = QMessageBox()
 
         if error == 1:
-            msgDialog.setText('Incorrect data was entered in the search field')
+            msgDialog.setText('Incorrect data entered in the search field')
             msgDialog.setIcon(QMessageBox.Icon.Warning)
         else:
             msgDialog.setText('Connection Error. Please try again')
