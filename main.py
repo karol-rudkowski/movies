@@ -4,11 +4,12 @@ from requests import exceptions as requestsExceptions
 
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
+from PyQt6.QtCore import Qt
 
 import apiRequests
 
 
-class MainWindow(QWidget):
+class MainWindow(QScrollArea):
     TARGET_WIDTH = 150  # width of images in grid
     IMDB_LINK = "https://www.imdb.com/title/"
 
@@ -49,7 +50,6 @@ class MainWindow(QWidget):
         navBarBox.addLayout(searchBarBox)
         navBarBox.addLayout(randomBox)
 
-
         # GRID BOX
         self.gridBox = QGridLayout()
 
@@ -77,7 +77,14 @@ class MainWindow(QWidget):
         mainBox.addLayout(self.descriptionBox)
         mainBox.addStretch()
 
-        self.setLayout(mainBox)
+        mainWidget = QWidget()
+        mainWidget.setLayout(mainBox)
+
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setWidgetResizable(True)
+        self.setMinimumSize(900, 800)
+        self.setWidget(mainWidget)
 
         for i in range(0, 2):
             for j in range(0, 5):
